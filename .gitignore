@@ -1,0 +1,11 @@
+# IDE
+.vs/
+*.user
+*.suo
+*.userprefs
+# Build
+bin/
+obj/
+# OS
+.DS_Store
+Thumbs.db
