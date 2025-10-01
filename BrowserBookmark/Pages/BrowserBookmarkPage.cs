@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.AccessControl;
+using BrowserBookmark.Bookmarks;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 
@@ -8,14 +10,24 @@ namespace BrowserBookmark;
 
 internal sealed partial class BrowserBookmarkPage : DynamicListPage
 {
+    private const string DefaultIconGlyph = "\uE774";
+
     private readonly IReadOnlyList<BookmarkEntry> _allBookmarks;
     private IListItem[] _currentItems = Array.Empty<IListItem>();
     private readonly ListItem _noBookmarksItem;
     private readonly ListItem _noMatchesItem;
 
+    private static readonly Dictionary<string, string> BrowserIconPaths = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Microsoft Edge"] = "Assets\\Edge.png",
+        ["Google Chrome"] = "Assets\\Chrome.png",
+        ["Brave"] = "Assets\\Brave.png",
+    };
+
     public BrowserBookmarkPage()
     {
-        Icon = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
+        Icon = IconHelpers.FromRelativePath("Assets\\logo.png");
+
         Title = "Browser Bookmark Search";
         Name = "Open";
         PlaceholderText = "Search bookmark titles, urls, or folders";
@@ -79,42 +91,69 @@ internal sealed partial class BrowserBookmarkPage : DynamicListPage
                 .ThenBy(b => b.Url, StringComparer.OrdinalIgnoreCase);
         }
 
-        string[] tokens = searchText
-            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        string query = searchText!.Trim();
 
         return _allBookmarks
-            .Where(b => MatchesTokens(b, tokens))
-            .OrderByDescending(b => b.AddedOn ?? DateTimeOffset.MinValue)
-            .ThenBy(b => b.Title, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(b => b.Url, StringComparer.OrdinalIgnoreCase);
+            .Select(entry =>
+            {
+                MatchRank? rank = null;
+                int fuzzyScore = 0;
+
+                if (ContainsIgnoreCase(entry.Browser, query))
+                {
+                    rank = MatchRank.Browser;
+                }
+                else if (ContainsIgnoreCase(entry.Url, query))
+                {
+                    rank = MatchRank.Url;
+                }
+                else
+                {
+                    var titleMatch = StringMatcher.FuzzySearch(query, entry.Title);
+                    if (titleMatch.Success)
+                    {
+                        rank = MatchRank.Title;
+                        fuzzyScore = titleMatch.Score;
+                    }
+                }
+
+                return new
+                {
+                    Entry = entry,
+                    Rank = rank,
+                    TitleScore = fuzzyScore
+                };
+            })
+            .Where(result => result.Rank.HasValue)
+            .OrderBy(result => result.Rank.Value)
+            .ThenByDescending(result => result.Rank == MatchRank.Title ? result.TitleScore : 0)
+            .ThenByDescending(result => result.Entry.AddedOn ?? DateTimeOffset.MinValue)
+            .ThenBy(result => result.Entry.Title, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(result => result.Entry.Url, StringComparer.OrdinalIgnoreCase)
+            .Select(result => result.Entry);
     }
 
-    private static bool MatchesTokens(BookmarkEntry entry, string[] tokens)
+    private static bool ContainsIgnoreCase(string? source, string value)
     {
-        foreach (string token in tokens)
+        return !string.IsNullOrEmpty(source) &&
+               source.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0;
+    }
+
+    private enum MatchRank
+    {
+        Browser = 0,
+        Url = 1,
+        Title = 2,
+    }
+
+    private static IconInfo ResolveIcon(string browser)
+    {
+        if (BrowserIconPaths.TryGetValue(browser, out string iconPath))
         {
-            if (!MatchesToken(entry, token))
-            {
-                return false;
-            }
+            return IconHelpers.FromRelativePath(iconPath);
         }
 
-        return true;
-    }
-
-    private static bool MatchesToken(BookmarkEntry entry, string token)
-    {
-        return Contains(entry.Title, token)
-            || Contains(entry.Url, token)
-            || Contains(entry.Browser, token)
-            || Contains(entry.Profile, token)
-            || Contains(entry.FolderLabel, token);
-    }
-
-    private static bool Contains(string? source, string token)
-    {
-        return !string.IsNullOrEmpty(source)
-            && source.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0;
+        return new IconInfo(DefaultIconGlyph);
     }
 
     private static ListItem CreateItem(BookmarkEntry entry)
@@ -129,12 +168,19 @@ internal sealed partial class BrowserBookmarkPage : DynamicListPage
             Title = entry.Title,
             Subtitle = entry.Url,
             Section = entry.SectionLabel,
-            TextToSuggest = string.Concat(entry.Title, ' ', entry.Url),
         };
 
-        if (entry.FolderLabel is not null)
+        item.Icon = ResolveIcon(entry.Browser);
+
+        string? tagText = entry.FolderLabel;
+        if (!string.IsNullOrWhiteSpace(entry.Profile))
         {
-            item.Tags = new ITag[] { new Tag(entry.FolderLabel) };
+            tagText = string.IsNullOrWhiteSpace(tagText) ? entry.Profile : string.Concat(entry.Profile, " > ", tagText);
+        }
+
+        if (!string.IsNullOrWhiteSpace(tagText))
+        {
+            item.Tags = [new Tag(tagText)];
         }
 
         return item;

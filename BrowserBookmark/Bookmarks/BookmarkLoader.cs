@@ -4,7 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Text.Json;
 
-namespace BrowserBookmark;
+namespace BrowserBookmark.Bookmarks;
 
 internal static class BookmarkLoader
 {
@@ -43,13 +43,7 @@ internal static class BookmarkLoader
         {
             new BrowserRoot("Microsoft Edge", Path.Combine(localAppData, "Microsoft", "Edge", "User Data")),
             new BrowserRoot("Google Chrome", Path.Combine(localAppData, "Google", "Chrome", "User Data")),
-            new BrowserRoot("Chromium", Path.Combine(localAppData, "Chromium", "User Data")),
             new BrowserRoot("Brave", Path.Combine(localAppData, "BraveSoftware", "Brave-Browser", "User Data")),
-            new BrowserRoot("Vivaldi", Path.Combine(localAppData, "Vivaldi", "User Data")),
-            new BrowserRoot("Opera", Path.Combine(localAppData, "Opera Software", "Opera Stable"), TreatBaseAsProfile: true),
-            new BrowserRoot("Opera GX", Path.Combine(localAppData, "Opera Software", "Opera GX Stable"), TreatBaseAsProfile: true),
-            new BrowserRoot("Arc", Path.Combine(localAppData, "TheBrowserCompany", "Arc", "User Data")),
-            new BrowserRoot("Sidekick", Path.Combine(localAppData, "Sidekick", "User Data")),
         };
 
         foreach (var root in roots)
@@ -83,11 +77,11 @@ internal static class BookmarkLoader
         }
         catch (IOException)
         {
-            return Array.Empty<string>();
+            return [];
         }
         catch (UnauthorizedAccessException)
         {
-            return Array.Empty<string>();
+            return [];
         }
     }
 
@@ -194,12 +188,14 @@ internal static class BookmarkLoader
 
     private static string NormalizeProfileName(string profile)
     {
-        if (string.IsNullOrWhiteSpace(profile) || profile.Equals("Default", StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(profile))
         {
             return string.Empty;
         }
 
-        return profile;
+        return profile.Equals("Default", StringComparison.OrdinalIgnoreCase)
+            ? "Default"
+            : profile;
     }
 
     private static DateTimeOffset? TryParseChromiumTimestamp(JsonElement element, string propertyName)

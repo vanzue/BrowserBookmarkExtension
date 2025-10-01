@@ -14,7 +14,7 @@ public partial class BrowserBookmarkCommandsProvider : CommandProvider
     public BrowserBookmarkCommandsProvider()
     {
         DisplayName = "Browser Bookmark Search";
-        Icon = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
+        Icon = IconHelpers.FromRelativePath("Assets\\logo.png");
         _commands = [
             new CommandItem(new BrowserBookmarkPage()) { Title = DisplayName },
         ];
@@ -24,5 +24,4 @@ public partial class BrowserBookmarkCommandsProvider : CommandProvider
     {
         return _commands;
     }
-
 }
