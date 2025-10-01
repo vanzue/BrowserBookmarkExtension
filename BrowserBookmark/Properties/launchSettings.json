@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "BrowserBookmark (Package)": {
+      "commandName": "MsixPackage",
+      "doNotLaunchApp": true
+    },
+    "BrowserBookmark (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
