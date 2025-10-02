@@ -85,7 +85,7 @@ internal static class BookmarkLoader
         }
     }
 
-    private static IEnumerable<BookmarkEntry> ReadChromiumBookmarks(BookmarkSource source)
+    private static List<BookmarkEntry> ReadChromiumBookmarks(BookmarkSource source)
     {
         var entries = new List<BookmarkEntry>();
 

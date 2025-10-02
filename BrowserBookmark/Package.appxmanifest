@@ -9,15 +9,15 @@
   IgnorableNamespaces="uap uap3 rescap">
 
   <Identity
-    Name="BrowserBookmark"
-    Publisher="CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
-    Version="0.0.1.0" />
+    Name="Vanzue.BrowserBookmarkSearchforcommandpalette"
+    Publisher="CN=84B03E5A-BA72-49CC-BB76-26D92491719D"
+    Version="0.0.4.0" />
   <!-- When you're ready to publish your extension, you'll need to change the
        Publisher= to match your own identity -->
 
   <Properties>
-    <DisplayName>Browser Bookmark Search</DisplayName>
-    <PublisherDisplayName>A Lone Developer</PublisherDisplayName>
+    <DisplayName>Browser Bookmark Search for command palette</DisplayName>
+    <PublisherDisplayName>Vanzue</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
@@ -35,7 +35,7 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="Browser Bookmark Search"
+        DisplayName="Browser Bookmark Search for command palette"
         Description="Browser Bookmark Search"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
@@ -83,4 +83,7 @@
     <Capability Name="internetClient" />
     <rescap:Capability Name="runFullTrust" />
   </Capabilities>
+
 </Package>
+
+

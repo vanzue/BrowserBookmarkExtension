@@ -125,7 +125,7 @@ internal sealed partial class BrowserBookmarkPage : DynamicListPage
                 };
             })
             .Where(result => result.Rank.HasValue)
-            .OrderBy(result => result.Rank.Value)
+            .OrderBy(result => result.Rank.GetValueOrDefault())
             .ThenByDescending(result => result.Rank == MatchRank.Title ? result.TitleScore : 0)
             .ThenByDescending(result => result.Entry.AddedOn ?? DateTimeOffset.MinValue)
             .ThenBy(result => result.Entry.Title, StringComparer.OrdinalIgnoreCase)
@@ -134,10 +134,7 @@ internal sealed partial class BrowserBookmarkPage : DynamicListPage
     }
 
     private static bool ContainsIgnoreCase(string? source, string value)
-    {
-        return !string.IsNullOrEmpty(source) &&
-               source.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0;
-    }
+        => !string.IsNullOrEmpty(source) && source.Contains(value, StringComparison.OrdinalIgnoreCase);
 
     private enum MatchRank
     {
@@ -148,7 +145,7 @@ internal sealed partial class BrowserBookmarkPage : DynamicListPage
 
     private static IconInfo ResolveIcon(string browser)
     {
-        if (BrowserIconPaths.TryGetValue(browser, out string iconPath))
+        if (BrowserIconPaths.TryGetValue(browser, out string? iconPath) && !string.IsNullOrEmpty(iconPath))
         {
             return IconHelpers.FromRelativePath(iconPath);
         }

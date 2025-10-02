@@ -3,9 +3,39 @@
 *.user
 *.suo
 *.userprefs
+# Editors
+.vscode/
+.idea/
+# Solution state
+*.sln.docstates
+*.userosscache
 # Build
 bin/
 obj/
+# Test results
+TestResults/
+# NuGet (packages folder for older projects)
+packages/
+# Keys/certificates (do not commit secrets)
+*.pfx
+*.snk
+*.cer
+# Windows app packaging artifacts
+*.appx
+*.appxbundle
+*.msix
+*.msixbundle
+# Store association metadata (do not commit)
+**/Package.StoreAssociation.xml
+# Common packaging output directories
+**/AppPackages*/
+**/AppxPackages*/
+# VS Publish output
+**/publish/
+# Publish profiles (do not commit)
+**/Properties/PublishProfiles/
+*.pubxml
+*.pubxml.user
 # OS
 .DS_Store
 Thumbs.db
